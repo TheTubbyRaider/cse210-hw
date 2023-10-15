@@ -173,105 +173,6 @@ public class GoalManager
         Console.WriteLine($"Your current score is: {score}");
     }
 
-    public void SaveGoalsToFile(string filename)
-    {
-        using (StreamWriter outputFile = new StreamWriter(filename))
-        {
-            foreach (Goal goal in goals)
-            {
-                outputFile.WriteLine(goal.GetStringRepresentation());
-            }
-        }
-    }
-
-    public void LoadGoalsFromFile(string filename)
-    {
-        goals.Clear(); // Clear existing goals before loading
-        try
-        {
-            string[] lines = System.IO.File.ReadAllLines(filename);
-
-            foreach (string line in lines)
-            {
-                Goal newGoal = CreateGoalFromData(line);
-                if (newGoal != null)
-                {
-                    goals.Add(newGoal);
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine("Error loading goals from the file: " + e.Message);
-        }
-    }
-
-    private Goal CreateGoalFromData(string data)
-    {
-        string[] parts = data.Split(':');
-        if (parts.Length < 2)
-        {
-            return null; // Invalid data
-        }
-
-        string goalType = parts[0];
-        string details = parts[1];
-
-        string[] detailParts = details.Split(',');
-        if (detailParts.Length < 3)
-        {
-            return null; // Invalid data
-        }
-
-        string name = detailParts[0];
-        string description = detailParts[1];
-        int points = int.Parse(detailParts[2]);
-
-        Goal newGoal = null;
-
-        if (goalType == "SimpleGoal")
-        {
-            bool isComplete = detailParts.Length > 3 && detailParts[3] == "1";
-            newGoal = new SimpleGoal
-            {
-                Name = name,
-                Description = description,
-                Points = points,
-                IsComplete = isComplete
-            };
-        }
-        else if (goalType == "ChecklistGoal")
-        {
-            if (detailParts.Length < 6)
-            {
-                return null; // Invalid data
-            }
-            int amountCompleted = int.Parse(detailParts[3]);
-            int target = int.Parse(detailParts[4]);
-            int bonus = int.Parse(detailParts[5]);
-            newGoal = new ChecklistGoal
-            {
-                Name = name,
-                Description = description,
-                Points = points,
-                AmountCompleted = amountCompleted,
-                Target = target,
-                Bonus = bonus
-            };
-        }
-        else if (goalType == "EternalGoal")
-        {
-            newGoal = new EternalGoal
-            {
-                Name = name,
-                Description = description,
-                Points = points
-            };
-        }
-
-        return newGoal;
-    }
-
     public void Run()
     {
         GoalManager goalManager = new GoalManager();
@@ -283,9 +184,7 @@ public class GoalManager
             Console.WriteLine("2. Record Event");
             Console.WriteLine("3. List Goals");
             Console.WriteLine("4. Display Score");
-            Console.WriteLine("5. Save Goals to File");
-            Console.WriteLine("6. Load Goals from File");
-            Console.WriteLine("7. Exit");
+            Console.WriteLine("5. Exit");
             string choice = Console.ReadLine();
 
             switch (choice)
@@ -318,18 +217,6 @@ public class GoalManager
                     goalManager.DisplayScore();
                     break;
                 case "5":
-                    Console.Write("Enter the filename to save goals: ");
-                    string saveFilename = Console.ReadLine();
-                    goalManager.SaveGoalsToFile(saveFilename);
-                    Console.WriteLine("Goals saved to the file!");
-                    break;
-                case "6":
-                    Console.Write("Enter the filename to load goals from: ");
-                    string loadFilename = Console.ReadLine();
-                    goalManager.LoadGoalsFromFile(loadFilename);
-                    Console.WriteLine("Goals loaded from the file!");
-                    break;
-                case "7":
                     return;
             }
         }
