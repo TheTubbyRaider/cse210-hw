@@ -173,10 +173,84 @@ public class GoalManager
         Console.WriteLine($"Your current score is: {score}");
     }
 
+    public void SaveGoalsToFile(string fileName)
+    {
+        using (StreamWriter sw = new StreamWriter(fileName))
+        {
+            foreach (Goal goal in goals)
+            {
+                sw.WriteLine(goal.GetStringRepresentation());
+            }
+        }
+    }
+
+    public void LoadGoalsFromFile(string fileName)
+    {
+        if (File.Exists(fileName))
+        {
+            string[] lines = File.ReadAllLines(fileName);
+            foreach (string line in lines)
+            {
+                string[] parts = line.Split(':');
+                if (parts.Length >= 2)
+                {
+                    GoalType type;
+                    Enum.TryParse(parts[0], out type);
+
+                    string[] data = parts[1].Split(',');
+                    if (data.Length >= 4)
+                    {
+                        string name = data[0];
+                        string description = data[1];
+                        int points = int.Parse(data[2]);
+                        int isComplete = int.Parse(data[3]);
+
+                        if (type == GoalType.Simple)
+                        {
+                            SimpleGoal simpleGoal = new SimpleGoal
+                            {
+                                Name = name,
+                                Description = description,
+                                Points = points,
+                                IsComplete = (isComplete == 1)
+                            };
+                            goals.Add(simpleGoal);
+                        }
+                        else if (type == GoalType.Eternal)
+                        {
+                            EternalGoal eternalGoal = new EternalGoal
+                            {
+                                Name = name,
+                                Description = description,
+                                Points = points
+                            };
+                            goals.Add(eternalGoal);
+                        }
+                        else if (type == GoalType.Checklist && data.Length >= 6)
+                        {
+                            int amountCompleted = int.Parse(data[4]);
+                            int target = int.Parse(data[5]);
+                            int bonus = int.Parse(data[6]);
+
+                            ChecklistGoal checklistGoal = new ChecklistGoal
+                            {
+                                Name = name,
+                                Description = description,
+                                Points = points,
+                                AmountCompleted = amountCompleted,
+                                Target = target,
+                                Bonus = bonus
+                            };
+                            goals.Add(checklistGoal);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public void Run()
     {
-        GoalManager goalManager = new GoalManager();
-
         while (true)
         {
             Console.WriteLine("Choose an option:");
@@ -184,7 +258,9 @@ public class GoalManager
             Console.WriteLine("2. Record Event");
             Console.WriteLine("3. List Goals");
             Console.WriteLine("4. Display Score");
-            Console.WriteLine("5. Exit");
+            Console.WriteLine("5. Save Goals to File");
+            Console.WriteLine("6. Load Goals from File");
+            Console.WriteLine("7. Exit");
             string choice = Console.ReadLine();
 
             switch (choice)
@@ -200,23 +276,35 @@ public class GoalManager
                         string description = Console.ReadLine();
                         Console.Write("Enter goal points: ");
                         int points = int.Parse(Console.ReadLine());
-                        goalManager.CreateGoal(goalType, name, description, points);
+                        CreateGoal(goalType, name, description, points);
                         Console.WriteLine("Goal created!");
                     }
                     break;
                 case "2":
                     Console.Write("Enter goal index to record an event: ");
                     int goalIndex = int.Parse(Console.ReadLine());
-                    goalManager.RecordEvent(goalIndex);
+                    RecordEvent(goalIndex);
                     Console.WriteLine("Event recorded!");
                     break;
                 case "3":
-                    goalManager.ListGoals();
+                    ListGoals();
                     break;
                 case "4":
-                    goalManager.DisplayScore();
+                    DisplayScore();
                     break;
                 case "5":
+                    Console.Write("Enter the filename to save goals: ");
+                    string saveFileName = Console.ReadLine();
+                    SaveGoalsToFile(saveFileName);
+                    Console.WriteLine("Goals saved to file!");
+                    break;
+                case "6":
+                    Console.Write("Enter the filename to load goals from: ");
+                    string loadFileName = Console.ReadLine();
+                    LoadGoalsFromFile(loadFileName);
+                    Console.WriteLine("Goals loaded from file!");
+                    break;
+                case "7":
                     return;
             }
         }
