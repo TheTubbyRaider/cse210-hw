@@ -1,0 +1,2 @@
+ReflectionActivity - Duration: 25 seconds
+BreathingActivity - Duration: 10 seconds
